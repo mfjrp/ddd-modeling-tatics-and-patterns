@@ -5,18 +5,34 @@ import CustomerChangeAddressEvent from "../customer/customer-change-address.even
 import CustomerCreatedEvent from "../customer/customer-created.event";
 import Address from "../../entity/address";
 import Customer from "../../entity/customer";
+import SendQueueWhenCustomerIsCreatedHandler from "../customer/handler/send-queue-when-customer-is-created.handler";
 
 describe("Domain products events tests", () => {
 
     it("should register an customer event handler", () => {
         const eventDispatcher = new EventDispatcher();
-        const eventHandler = new SendEmailWhenCustomerIsCreatedHandler();
+        const eventHandlerEmail = new SendEmailWhenCustomerIsCreatedHandler();
+        const eventHandlerQueue = new SendQueueWhenCustomerIsCreatedHandler();
 
-        eventDispatcher.register("CustomerCreatedEvent", eventHandler);
+        eventDispatcher.register("CustomerCreatedEvent", eventHandlerEmail);
+        eventDispatcher.register("CustomerCreatedEvent", eventHandlerQueue);
+
+        const customerCreatedEvent = new CustomerCreatedEvent({
+            id: "1",
+            name: "Customer 1 description",
+            address: {
+                street: "Address 1", 
+                number: 123, 
+                zip: "Zip Code 1", 
+                city: "City 1"
+            },
+        });
+        eventDispatcher.notify(customerCreatedEvent);
 
         expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"]).toBeDefined();
-        expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"].length).toBe(1);
-        expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]).toMatchObject(eventHandler);
+        expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"].length).toBe(2);
+        expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]).toMatchObject(eventHandlerEmail);
+        expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"][1]).toMatchObject(eventHandlerQueue);
     });
 
     it("should register an customer changed address event handler", () => {
@@ -38,7 +54,6 @@ describe("Domain products events tests", () => {
             nome: customer.name,
             endereco: customer.Address
         });
-        console.log(`customer ` + customerChangedAddress.eventData.id);
         eventHandler.handle(customerChangedAddress);
         
         eventDispatcher.notify(customerChangedAddress);
