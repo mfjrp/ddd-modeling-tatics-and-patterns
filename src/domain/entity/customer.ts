@@ -1,3 +1,4 @@
+import CustomerChangeAddressEvent from "../event/customer/customer-change-address.event";
 import Address from "./address";
 
 export default class Customer {
@@ -45,6 +46,11 @@ export default class Customer {
 
     changeAddress(address: Address) {
         this._address = address;
+        // const trigger = new CustomerChangeAddressEvent({
+        //     id: this.id, 
+        //     nome: this.name, 
+        //     endereco: address
+        // });
     }
 
     isActive(): boolean {
